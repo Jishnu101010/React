@@ -17,7 +17,7 @@ function App() {
   return (
     <div className="container mt-5">
       <div className="card p-4 mb-4" style={{ backgroundColor: bgColor }}>
-        <h3>React Task Planner</h3>
+        <h3>React Task Planner..</h3>
         <form onSubmit={handleAddTask}>
           <input type="text"className="form-control mb-3"placeholder="Enter task name :"value={task} onChange={(e) => setTask(e.target.value)}/>
 
