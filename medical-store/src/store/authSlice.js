@@ -8,14 +8,14 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action) => {
       state.user = action.payload;
-      localStorage.setItem("user", JSON.stringify(action.payload));
+      window.localStorage.setItem("user", JSON.stringify(action.payload));
     },
     removeUser: (state) => {
       state.user = null;
-      localStorage.removeItem("user");
+      window.localStorage.removeItem("user");
     },
     setUserFromLocalStorage: (state) => {
-      const user = localStorage.getItem("user");
+      const user = window.localStorage.getItem("user");
       state.user = user ? JSON.parse(user) : null;
     }
   }
