@@ -1,19 +1,65 @@
-import { useNavigate } from "react-router-dom";
-import { logout } from "../utils/auth";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { removeUser } from "../store/authSlice";
 
 function Navbar() {
+  const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  function logout() {
+    dispatch(removeUser());
+    navigate("/login");
+  }
 
   return (
-    <div className="navbar">
-      <h2>Medical Store</h2>
-      <button onClick={handleLogout}>Logout</button>
-    </div>
+    <nav className="navbar navbar-expand-sm bg-primary navbar-dark px-3">
+      <h4 className="navbar-brand mb-0">💊 MediTrack</h4>
+
+      <ul className="navbar-nav ms-auto">
+        {!user && (
+          <li className="nav-item">
+            <NavLink to="/register" className="nav-link">
+              Sign Up
+            </NavLink>
+          </li>
+        )}
+
+        {!user && (
+          <li className="nav-item">
+            <NavLink to="/login" className="nav-link">
+              Login
+            </NavLink>
+          </li>
+        )}
+
+        {user && (
+          <>
+            <li className="nav-item">
+              <NavLink to="/med-home" className="nav-link">
+                Dashboard
+              </NavLink>
+            </li>
+
+            <li className="nav-item">
+              <NavLink to="/med-list" className="nav-link">
+                Medicines
+              </NavLink>
+            </li>
+
+            <li className="nav-item">
+              <span
+                className="nav-link"
+                style={{ cursor: "pointer" }}
+                onClick={logout}
+              >
+                Logout
+              </span>
+            </li>
+          </>
+        )}
+      </ul>
+    </nav>
   );
 }
 
