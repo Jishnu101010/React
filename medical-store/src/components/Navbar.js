@@ -37,13 +37,13 @@ function Navbar() {
           <>
             <li className="nav-item">
               <NavLink to="/med-home" className="nav-link">
-                Dashboard
+                Home
               </NavLink>
             </li>
 
             <li className="nav-item">
               <NavLink to="/med-list" className="nav-link">
-                Medicines
+                Dashboard
               </NavLink>
             </li>
 

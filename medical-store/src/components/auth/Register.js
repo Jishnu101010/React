@@ -1,40 +1,79 @@
+import axios from "axios";
 import { useState } from "react";
-import Navbar from "../Navbar";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../Navbar";
 
 function Register() {
-  const [name, setName] = useState("");
-  const navigate = useNavigate();
-
-  function registerUser() {
-    if (!name) {
-      alert("Please enter your name");
-      return;
+    var [name, setName] = useState('');
+    var [email, setEmail] = useState('');
+    var [password, setPassword] = useState('');
+    var [passwordConf, setPasswordConf] = useState('');
+    var [errorMessage, setErrorMessage] = useState('');
+    var navigate = useNavigate();
+    function registerUser(){
+        var user = {
+            name: name,
+            email: email,
+            password: password,
+            password_confirmation: passwordConf
+        }
+        axios.post('https://demo-blog.mashupstack.com/api/register',user).then(response=>{
+            setErrorMessage('');
+            navigate('/');
+        }).catch(error=>{
+            if(error.response.data.errors){
+                setErrorMessage(Object.values(error.response.data.errors).join(' '));
+            }else{
+                setErrorMessage('Failed to connect to api');
+            }
+        })
     }
-
-    alert("Registered successfully!");
-    navigate("/login");
-  }
-
-  return (
-    <div>
-      <Navbar />
-      <div className="container mt-5">
-        <h3>Register</h3>
-
-        <input
-          className="form-control mb-2"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <button className="btn btn-success" onClick={registerUser}>
-          Register
-        </button>
-      </div>
+    return <div>
+        <Navbar/>
+        <div className="container">
+            <div className="row">
+                <div className="col-8 offset-2">
+                    <h1>Register</h1>
+                    {errorMessage?<div className="alert alert-danger">{errorMessage}</div>:''}
+                    <div className="form-group">
+                        <label>Name:</label>
+                        <input type="text"
+                        className="form-control"
+                        value={name}
+                        onInput={(event)=>setName(event.target.value)}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Email:</label>
+                        <input type="text"
+                        className="form-control"
+                        value={email}
+                        onInput={(event)=>setEmail(event.target.value)}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Password:</label>
+                        <input type="password"
+                        className="form-control"
+                        value={password}
+                        onInput={(event)=>setPassword(event.target.value)}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Confirm Password:</label>
+                        <input type="password"
+                        className="form-control"
+                        value={passwordConf}
+                        onInput={(event)=>setPasswordConf(event.target.value)}
+                        />
+                    </div>
+                    <div className="form-group">
+                        <button className="btn btn-primary float-right" onClick={registerUser}>Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  );
 }
 
 export default Register;

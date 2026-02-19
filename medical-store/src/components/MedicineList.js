@@ -1,125 +1,161 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
-import { useSelector } from "react-redux";
 import checkAuth from "./auth/checkAuth";
+import { useSelector } from "react-redux";
 
 function MedicineList() {
   const user = useSelector((state) => state.auth.user);
   const storageKey = user ? "medicineList_" + user.email : null;
 
-  const [list, setList] = useState([]);
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const [items, setItems] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editedName, setEditedName] = useState("");
+  const [editedStock, setEditedStock] = useState("");
 
-  const recordsPerPage = 3;
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
 
   useEffect(() => {
     if (!storageKey) return;
     const data = JSON.parse(localStorage.getItem(storageKey)) || [];
-    setList(data);
+    setItems(data);
   }, [storageKey]);
 
-  const handleDelete = (id) => {
-    const updated = list.filter((item) => item.id !== id);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
-    setList(updated);
-
-    if ((page - 1) * recordsPerPage >= updated.length && page > 1) {
-      setPage(page - 1);
-    }
+  const saveToStorage = (data) => {
+    localStorage.setItem(storageKey, JSON.stringify(data));
+    setItems(data);
   };
 
-  const filtered = list.filter((m) =>
-    m.name.toLowerCase().includes(search.toLowerCase())
+  const handleDelete = (id) => {
+    const updated = items.filter((item) => item.id !== id);
+    saveToStorage(updated);
+  };
+
+  const handleEdit = (item) => {
+    setEditingId(item.id);
+    setEditedName(item.name);
+    setEditedStock(item.stock);
+  };
+
+  const handleSave = () => {
+    const updated = items.map((item) =>
+      item.id === editingId
+        ? { ...item, name: editedName, stock: editedStock }
+        : item
+    );
+    saveToStorage(updated);
+    setEditingId(null);
+  };
+
+  const filteredItems = items.filter((item) =>
+    item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const indexLast = page * recordsPerPage;
-  const indexFirst = indexLast - recordsPerPage;
-  const current = filtered.slice(indexFirst, indexLast);
-  const totalPages = Math.ceil(filtered.length / recordsPerPage) || 1;
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = filteredItems.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   return (
     <div>
       <Navbar />
 
-      <div className="container py-4">
-        <h2 className="page-title mb-4">💊 Medicine List</h2>
+      <div className="container mt-4">
+        <h2>💊 Medicine List</h2>
 
-        <div className="card p-4">
+        <input
+          className="form-control my-3"
+          placeholder="Search medicine..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
 
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h4 className="mb-0">Medicine Records</h4>
+        <table className="table table-dark table-bordered">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Stock</th>
+              <th>Added Time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentItems.map((item) => (
+              <tr key={item.id}>
+                <td>
+                  {editingId === item.id ? (
+                    <input
+                      value={editedName}
+                      onChange={(e) => setEditedName(e.target.value)}
+                    />
+                  ) : (
+                    item.name
+                  )}
+                </td>
 
-            <input
-              className="form-control search-box"
-              placeholder="Search medicine..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1); // reset page when searching
-              }}
-              style={{ maxWidth: "300px" }}
-            />
-          </div>
+                <td>
+                  {editingId === item.id ? (
+                    <input
+                      value={editedStock}
+                      onChange={(e) => setEditedStock(e.target.value)}
+                    />
+                  ) : (
+                    item.stock
+                  )}
+                </td>
 
-          {filtered.length === 0 ? (
-            <p className="empty-text text-center py-4">
-              No medicines found.
-            </p>
-          ) : (
-            <>
-              <table className="table table-hover table-bordered">
-                <thead className="table-primary">
-                  <tr>
-                    <th>Name</th>
-                    <th>Stock</th>
-                    <th>Added Time</th>
-                    <th width="140">Action</th>
-                  </tr>
-                </thead>
+                <td>{item.createdAt}</td>
 
-                <tbody>
-                  {current.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.name}</td>
-                      <td>{item.stock}</td>
-                      <td>{item.createdAt}</td>
-                      <td>
-                        <button
-                          className="btn btn-danger btn-sm w-100"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                <td>
+                  {editingId === item.id ? (
+                    <>
+                      <button
+                        className="btn btn-success btn-sm me-2"
+                        onClick={handleSave}
+                      >
+                        Save
+                      </button>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={() => setEditingId(null)}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        className="btn btn-primary btn-sm me-2"
+                        onClick={() => handleEdit(item)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDelete(item.id)}
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-              <div className="d-flex justify-content-center gap-3 mt-3">
-                <button
-                  className="btn btn-secondary pagination-btn"
-                  disabled={page === 1}
-                  onClick={() => setPage(page - 1)}
-                >
-                  Prev
-                </button>
-
-                <span className="align-self-center fw-semibold">
-                  Page {page} / {totalPages}
-                </span>
-
-                <button
-                  className="btn btn-secondary pagination-btn"
-                  disabled={page === totalPages}
-                  onClick={() => setPage(page + 1)}
-                >
-                  Next
-                </button>
-              </div>
-            </>
-          )}
+        <div className="d-flex gap-2">
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i}
+              className="btn btn-outline-primary btn-sm"
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
         </div>
       </div>
     </div>
